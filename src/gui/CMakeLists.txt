@@ -1,4 +1,4 @@
-set(NAME tv-app-launcher)
+set(NAME tal)
 file( GLOB_RECURSE SRC
 	"*.cpp"
 	"*.c"
@@ -6,4 +6,10 @@ file( GLOB_RECURSE SRC
 
 add_executable(${NAME}
 	${SRC}
+)
+
+
+
+target_link_libraries(${NAME}
+${TAL_LIBS}
 )
