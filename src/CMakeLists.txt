@@ -1,5 +1,5 @@
 include_directories(
-	${TAL_INCLUDES}
+	${LTV_INCLUDES}
 	${PROJECT_SOURCE_DIR}/include
 )
 

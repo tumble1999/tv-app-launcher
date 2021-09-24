@@ -1,15 +1,17 @@
 set(NAME tal)
-file( GLOB_RECURSE SRC
+file(GLOB_RECURSE SRC
 	"*.cpp"
 	"*.c"
 )
 
 add_executable(${NAME}
+	WIN32
 	${SRC}
 )
 
 
 
 target_link_libraries(${NAME}
-${TAL_LIBS}
+	${LTV_LIBS}
+	ltv
 )
