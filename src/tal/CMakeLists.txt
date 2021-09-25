@@ -13,5 +13,5 @@ add_executable(${NAME}
 
 target_link_libraries(${NAME}
 	${LTV_LIBS}
-	ltv
+	# ltv
 )

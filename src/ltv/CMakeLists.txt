@@ -4,12 +4,12 @@ file( GLOB_RECURSE SRC
 	"*.c"
 )
 
-add_library(${NAME}
-	${SRC}
-)
+# add_library(${NAME}
+# 	${SRC}
+# )
 
 
 
-target_link_libraries(${NAME}
-${LTV_LIBS}
-)
+# target_link_libraries(${NAME}
+# ${LTV_LIBS}
+# )
