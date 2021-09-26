@@ -1,41 +1,90 @@
-#include <gtk/gtk.h>
-#include <vector>
+
+#include <filesystem>
+#include <fstream>
+#include <string>
 #include <iostream>
 
-static void btnClicked(GtkWidget *widget, gpointer data)
+#include <tal/gtk.hpp>
+#include <tal/xdg.hpp>
+namespace fs = std::filesystem;
+
+void exec_app(const char *cmd)
 {
-	char *app = (char *)"konsole";
-	char **cmd = &app;
-	//g_spawn_async(NULL, cmd, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-	g_spawn_command_line_async(app, NULL);
+	std::cout << "exec_app: " << cmd << "\n";
+	g_spawn_command_line_async(cmd, NULL);
 }
 
-static void activate(GtkApplication *app, gpointer user_data)
+void app_btn_clicked(GtkWidget *widget, gpointer data)
 {
-	/*
-	Tpodo
-	Window>Serolled window>>viewport>box>flowbox> APP buttons
-	*/
+	//exec_app("konsole");
+	exec_app((const char *)g_object_get_data(G_OBJECT(widget), "desktop_exec"));
+}
 
-	GtkWidget *window = gtk_application_window_new(app);
-	gtk_window_set_title(GTK_WINDOW(window), "Television Application Launcher InDev");
-	//gtk_window_set_default_size(GTK_WINDOW(window), 1200, 700);
-	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+GtkWidget *tal_app_button_new(tal::DesktopFile app)
+{
+	GtkWidget *button = gtk_button_new_with_label(app.Name);
+	g_object_set_data(G_OBJECT(button), "desktop_exec", (gpointer)app.Exec);
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(app_btn_clicked), NULL);
+	return button;
+}
 
-	GtkWidget *button = gtk_button_new_with_label("Hello World");
-	gtk_container_add(GTK_CONTAINER(window), button);
+void add_apps(GtkWidget *container, const char *path)
+{
+	std::cout << "Folder: " << path << "\n";
+	std::string pathstr = path;
+	pathstr.append("/applications");
+	if (!fs::exists(pathstr))
+		return;
+	for (const auto &entry : fs::directory_iterator(pathstr))
+	{
+		if (entry.path().extension() == ".desktop")
+		{
+			tal::DesktopFile desktopFile = tal::xdg_parse_desktop_file(entry.path().c_str());
+			std::cout << "Name: " << desktopFile.Name << "\n";
+			std::cout << "Exec: " << desktopFile.Exec << "\n";
+			GtkWidget *button = tal_app_button_new(desktopFile);
+			gtk_flow_box_insert(GTK_FLOW_BOX(container), button, -1);
+		}
+	}
+}
 
-	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(btnClicked), NULL);
+GtkWidget *tal_app_list_new()
+{
 
-	gtk_widget_show_all(window);
+	// Create Container
+	GtkWidget *list = gtk_flow_box_new();
+	tal::XDGConfigInfo info = tal::xdg_config_info();
+
+	// Add Apps
+	add_apps(list, info.dataHome);
+	while (*info.dataDirs)
+	{
+		add_apps(list, *info.dataDirs);
+		info.dataDirs++;
+	}
+	tal::xdg_clean();
+
+	return list;
 }
 
 int main(int argc, char **argv)
 {
-	GtkApplication *app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-	int status = g_application_run(G_APPLICATION(app), argc, argv);
-	g_object_unref(app);
+	GtkWidget *window = tal::create_window("Television Application Launcher", &argc, &argv);
 
-	return status;
+	GtkWidget *scrollBox = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(window), scrollBox);
+
+	GtkWidget *viewport = gtk_viewport_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(scrollBox), viewport);
+
+	GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_container_add(GTK_CONTAINER(viewport), page);
+
+	GtkWidget *appList = tal_app_list_new();
+	gtk_container_add(GTK_CONTAINER(page), appList);
+
+	gtk_widget_show_all(window);
+
+	gtk_main();
+	return 0;
 }
