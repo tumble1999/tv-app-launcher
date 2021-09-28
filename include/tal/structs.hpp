@@ -10,6 +10,8 @@ namespace tal
 
 	typedef struct
 	{
-		const char *Name, *Exec;
+		const char *Name, *Exec, *Icon;
+		bool NoDisplay, Hidden;
+
 	} DesktopFile;
 }

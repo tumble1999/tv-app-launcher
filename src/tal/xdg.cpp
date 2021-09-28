@@ -45,7 +45,8 @@ void tal::xdg_clean()
 
 tal::DesktopFile tal::xdg_parse_desktop_file(const char *path)
 {
-	tal::DesktopFile desktopFile;
+
+	tal::DesktopFile desktopFile{"", "", "", false};
 	bool reading;
 
 	char *line = NULL;
@@ -89,6 +90,30 @@ tal::DesktopFile tal::xdg_parse_desktop_file(const char *path)
 					strncpy(value, GET_VALUE(line, "Exec="), new_length);
 					desktopFile.Exec = value;
 					std::cout << "Exec: " << desktopFile.Exec << "\n";
+				}
+				if (STARTS_WITH(line, "Icon="))
+				{
+					new_length = length - strlen("Icon=");
+					value = (char *)malloc(new_length);
+					strncpy(value, GET_VALUE(line, "Icon="), new_length);
+					desktopFile.Icon = value;
+					std::cout << "Icon: " << desktopFile.Icon << "\n";
+				}
+				if (STARTS_WITH(line, "NoDisplay="))
+				{
+					new_length = length - strlen("NoDisplay=");
+					value = (char *)malloc(new_length);
+					strncpy(value, GET_VALUE(line, "NoDisplay="), new_length);
+					desktopFile.NoDisplay = value == "true";
+					std::cout << "NoDisplay: " << desktopFile.NoDisplay << "\n";
+				}
+				if (STARTS_WITH(line, "Hidden="))
+				{
+					new_length = length - strlen("Hidden=");
+					value = (char *)malloc(new_length);
+					strncpy(value, GET_VALUE(line, "Hidden="), new_length);
+					desktopFile.Hidden = value == "true";
+					std::cout << "Hidden: " << desktopFile.Hidden << "\n";
 				}
 			}
 			// Only start reading when the line containing "[Desktop Entry]" is reached
